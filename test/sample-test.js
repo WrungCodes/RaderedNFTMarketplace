@@ -1,19 +1,67 @@
 const { expect } = require("chai");
 const { ethers } = require("hardhat");
 
-describe("Greeter", function () {
+describe("Radered", function () {
+
   it("Should return the new greeting once it's changed", async function () {
-    const Greeter = await ethers.getContractFactory("Greeter");
-    const greeter = await Greeter.deploy("Hello, world!");
-    await greeter.deployed();
 
-    expect(await greeter.greet()).to.equal("Hello, world!");
+    const Float = await ethers.getContractFactory("libs/Float");
+    const float = await Float.deploy();
+    await float.deployed();
 
-    const setGreetingTx = await greeter.setGreeting("Hola, mundo!");
+    const Strings = await ethers.getContractFactory("libs/strings");
+    const strings = await Strings.deploy();
+    await strings.deployed();
 
-    // wait until the transaction is mined
-    await setGreetingTx.wait();
+    const RaderedUtils = await ethers.getContractFactory("RaderedUtils", { libraries: { Float: float.address, strings: strings.address } });
+    const raderedUtils = await RaderedUtils.deploy();
+    await raderedUtils.deployed();
+    
+    // Get the deployed contract RaderedHunkNFT
+    const RaderedHunkNFT = await ethers.getContractFactory("RaderedHunkNFT");
 
-    expect(await greeter.greet()).to.equal("Hola, mundo!");
+    // Get the deployed contract RaderedShardNFT
+    const RaderedShardNFT = await ethers.getContractFactory("RaderedShardNFT");
+
+    // Get the deployed contract RaderedCreation
+    const RaderedCreation = await ethers.getContractFactory("RaderedCreation");
+
+    // Get the deployed contract RaderedMarket
+    const RaderedMarket = await ethers.getContractFactory("RaderedMarket");
+
+
+    const market = await RaderedMarket.deploy();
+    await market.deployed();
+    const marketAddress = market.address;
+
+    const creation = await RaderedCreation.deploy();
+    await creation.deployed();
+    const creationAddress = creation.address;
+
+    const hunk = await RaderedHunkNFT.deploy(marmarketAddressket, creationAddress);
+    await hunk.deployed();
+    const hunkAddress = hunk.address;
+
+    const shard = await RaderedShardNFT.deploy(marketAddress, creationAddress);
+    await hunk.deployed();
+    const shardAddress = shard.address;
+
+    const [_, buyerAddress] = await ethers.getSigners();
+
+    console.log(await creation.connect(buyerAddress).getAllRadereds());
+
+
+    // const Greeter = await ethers.getContractFactory("Greeter");
+    // const greeter = await Greeter.deploy("Hello, world!");
+    // await greeter.deployed();
+
+    // expect(await greeter.greet()).to.equal("Hello, world!");
+
+    // const setGreetingTx = await greeter.setGreeting("Hola, mundo!");
+
+    // // wait until the transaction is mined
+    // await setGreetingTx.wait();
+
+    // expect(await greeter.greet()).to.equal("Hola, mundo!");
   });
 });

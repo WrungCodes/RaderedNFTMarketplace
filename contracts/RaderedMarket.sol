@@ -15,7 +15,6 @@ import '@openzeppelin/contracts/token/ERC721/ERC721.sol';
 
 import './RaderedShardNFT.sol';
 import './RaderedHunkNFT.sol';
-import './RaderedUtils.sol';
 
 contract RaderedMarket is ReentrancyGuard{
 
@@ -23,20 +22,6 @@ contract RaderedMarket is ReentrancyGuard{
 
     Counters.Counter private _tokenIds;
     Counters.Counter private _tokenSold;
-
-    /**
-    * RaderedNFTContractAddress 
-    * this is the address of the RaderedNFT contract
-    * contracts/RaderedNFT.sol
-     */
-    address raderedNFTContractAddress;
-
-    /**
-    * RaderedShardNFTContractAddress 
-    * this is the address of the RaderedShardNFT contract
-    * contracts/RaderedConsolidation.sol
-     */
-    address raderedShardNFTContractAddress;
 
     address payable owner;
 
@@ -48,7 +33,7 @@ contract RaderedMarket is ReentrancyGuard{
 
     struct MarketToken {
         uint itemId;
-        address tokenAddress;
+        address nftContract;
         uint256 tokenId;
         address payable seller;
         address payable owner;
@@ -62,7 +47,7 @@ contract RaderedMarket is ReentrancyGuard{
     event MarketTokenMinted(
         uint indexed itemId,
         uint256 indexed tokenId,
-        address indexed tokenAddress, 
+        address indexed nftContract, 
         address seller, 
         address owner, 
         uint256 price,
@@ -75,7 +60,7 @@ contract RaderedMarket is ReentrancyGuard{
         return listingFee;
     }
 
-    function mintMarketToken( address tokenAddress, uint tokenId, uint price ) public payable nonReentrant {
+    function mintMarketToken( address nftContract, uint tokenId, uint price ) public payable nonReentrant {
         // require price is greater than 0
         require(price > 0, "Price must be greater than 0");
         // reqiure value equals to the listing fee
@@ -86,7 +71,7 @@ contract RaderedMarket is ReentrancyGuard{
 
         idToMarketToken[itemId] = MarketToken(
             itemId,
-            tokenAddress,
+            nftContract,
             tokenId,
             payable(msg.sender),
             payable(address(0)),
@@ -95,12 +80,12 @@ contract RaderedMarket is ReentrancyGuard{
             true
         );
 
-        IERC721(tokenAddress).transferFrom(msg.sender, address(this), tokenId);
+        IERC721(nftContract).transferFrom(msg.sender, address(this), tokenId);
 
         emit MarketTokenMinted(
             itemId,
             tokenId,
-            tokenAddress, 
+            nftContract, 
             msg.sender, 
             address(0), 
             price,

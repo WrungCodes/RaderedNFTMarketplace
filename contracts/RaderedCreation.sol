@@ -18,27 +18,13 @@ import './RaderedShardNFT.sol';
 import './RaderedHunkNFT.sol';
 import './RaderedUtils.sol';
 
-contract RaderedCreation is ReentrancyGuard{
+contract RaderedCreation is ReentrancyGuard {
     using RaderedUtils for *;
     using Strings for *;
     using Counters for Counters.Counter;
 
     Counters.Counter private _hunksUnlocked;
     Counters.Counter private _hunksIds;
-
-    /**
-    * RaderedNFTContractAddress 
-    * this is the address of the RaderedNFT contract
-    * contracts/RaderedNFT.sol
-     */
-    address raderedNFTContractAddress;
-
-    /**
-    * RaderedShardNFTContractAddress 
-    * this is the address of the RaderedShardNFT contract
-    * contracts/RaderedConsolidation.sol
-     */
-    address raderedShardNFTContractAddress;
 
     uint discoveryFee = 0.0004 ether;
 
@@ -68,11 +54,8 @@ contract RaderedCreation is ReentrancyGuard{
     mapping(bytes => AddressCheckIn) private _addressCheckIn;
     mapping(address => UserDiscoveredShard) private _userDescovery;
 
-    constructor(address _raderedNFTContractAddress, address _raderedShardNFTContractAddress) {
+    constructor() {
         owner = payable(msg.sender);
-
-        raderedNFTContractAddress = _raderedNFTContractAddress;
-        raderedShardNFTContractAddress = _raderedShardNFTContractAddress;
     }
 
     // get descovery fee
@@ -80,7 +63,7 @@ contract RaderedCreation is ReentrancyGuard{
         return discoveryFee;
     }
 
-    function mintToken(string[] memory tokenURIs, uint[] memory prices, string[] memory locations) public returns(uint256){
+    function mintToken(address raderedNFTContractAddress, address raderedShardNFTContractAddress, string[] memory tokenURIs, uint[] memory prices, string[] memory locations) public returns(uint256){
 
         require(tokenURIs.length > 2, "RaderedCreation: tokenURIs length must be greater than 2");
         require(tokenURIs.length == locations.length + 1, "RaderedCreation: you must provide a location for each token");
@@ -112,7 +95,7 @@ contract RaderedCreation is ReentrancyGuard{
         return mainTokenId;
     }
 
-    function isLocationVerifcation(uint256 shardTokenId, string memory _locationLat, string memory _locationLong) public payable returns (bool) {
+    function isLocationVerifcation(address raderedShardNFTContractAddress, uint256 shardTokenId, string memory _locationLat, string memory _locationLong) public payable returns (bool) {
 
         // get the Shard NFT via the tokenId
         RaderedShardNFT shardNFT = RaderedShardNFT(raderedShardNFTContractAddress);
@@ -161,7 +144,7 @@ contract RaderedCreation is ReentrancyGuard{
     * 
     * this is like buying a Shard but your location must be the location of the Shard _location already saved
      */
-    function buyShard(uint256 shardTokenId) public payable nonReentrant returns (uint256) {
+    function buyShard(address raderedShardNFTContractAddress, uint256 shardTokenId) public payable nonReentrant returns (uint256) {
 
         bytes memory addr = abi.encodePacked(msg.sender, shardTokenId);
 
@@ -201,9 +184,9 @@ contract RaderedCreation is ReentrancyGuard{
     }
 
     // unlock a Hunk
-    function unlockHunk(uint256 hunkId) public nonReentrant returns (uint256) {
+    function unlockHunk(address raderedNFTContractAddress, address raderedShardNFTContractAddress, uint256 hunkId) public nonReentrant returns (uint256) {
         // require the user has unlocked all shards with the hasUserUnlockedAllShards
-        require(hasUserUnlockedAllShards(hunkId), "RaderedCreation: You must unlock all shards before you can unlock the Hunk");
+        require(hasUserUnlockedAllShards(raderedShardNFTContractAddress, hunkId), "RaderedCreation: You must unlock all shards before you can unlock the Hunk");
 
         // get the Hunk NFT via the tokenId
         TotalInfo memory totalInfo = _createdRaders[hunkId];
@@ -220,7 +203,7 @@ contract RaderedCreation is ReentrancyGuard{
     } 
 
     // function for users to check if he has all the shards of a total info in his address
-    function hasUserUnlockedAllShards(uint256 hunkId) public view returns (bool) {
+    function hasUserUnlockedAllShards(address raderedShardNFTContractAddress, uint256 hunkId) public view returns (bool) {
 
         // get the Total Info of the Radered via the raderedNFTId
         TotalInfo memory totalInfo = _createdRaders[hunkId];
@@ -308,7 +291,7 @@ contract RaderedCreation is ReentrancyGuard{
     }
 
     // fetch shard by tokenId
-    function getShard(uint256 shardTokenId) public view returns (RaderedUtils.ShardAndURI memory) {
+    function getShard(address raderedShardNFTContractAddress, uint256 shardTokenId) public view returns (RaderedUtils.ShardAndURI memory) {
         RaderedShardNFT shardNFT = RaderedShardNFT(raderedShardNFTContractAddress);
 
         return RaderedUtils.ShardAndURI({
@@ -318,7 +301,7 @@ contract RaderedCreation is ReentrancyGuard{
     }
 
     // fetch hunk by tokenId
-    function getHunk(uint256 hunkTokenId) public view returns (RaderedUtils.Hunk memory) {
+    function getHunk(address raderedNFTContractAddress, uint256 hunkTokenId) public view returns (RaderedUtils.Hunk memory) {
         RaderedHunkNFT hunk = RaderedHunkNFT(raderedNFTContractAddress);
 
         return RaderedUtils.Hunk({

@@ -29,17 +29,22 @@ contract RaderedHunkNFT is ERC721URIStorage {
     * this is the address of the Consolidation contract
     * contracts/RaderedConsolidation.sol
      */
-    address consolidationContractAddress;
+    address creationContractAddress;
 
     // Required mapping for RaderedNFT unlocked status
     mapping(uint256 => bool) private _raderedUnlockedStatus;
 
-    constructor(address _marketPlaceContractAddress, address _consolidationContractAddress) ERC721('RaderedHunk', 'RADHUNK') {
+    constructor(address _marketPlaceContractAddress, address _creationContractAddress) ERC721('RaderedHunk', 'RADHUNK') {
         marketPlaceContractAddress = _marketPlaceContractAddress;
-        consolidationContractAddress = _consolidationContractAddress;
+        creationContractAddress = _creationContractAddress;
     }
 
-    function mintToken(string memory tokenURI) external returns(uint){
+    modifier onlyRaderedContract() {
+        require(msg.sender == marketPlaceContractAddress || msg.sender == creationContractAddress);
+        _;                             
+    } 
+
+    function mintToken(string memory tokenURI) external onlyRaderedContract returns(uint){
         _tokenIds.increment();
         uint256 newMintedTokenId = _tokenIds.current();
 
@@ -48,7 +53,7 @@ contract RaderedHunkNFT is ERC721URIStorage {
         _setRaderedNFTUnlockedStatus(newMintedTokenId, false);
         
         setApprovalForAll(marketPlaceContractAddress, true);
-        setApprovalForAll(consolidationContractAddress, true);
+        setApprovalForAll(creationContractAddress, true);
 
         return newMintedTokenId;
     }

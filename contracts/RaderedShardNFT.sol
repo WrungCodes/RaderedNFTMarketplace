@@ -14,7 +14,7 @@ import '@openzeppelin/contracts/utils/Counters.sol';
 
 import './RaderedCreation.sol';
 import './RaderedUtils.sol';
-import "./libs/Float.sol";
+import './libs/Float.sol';
 
 contract RaderedShardNFT is ERC721URIStorage {
     using Counters for Counters.Counter;
@@ -38,28 +38,24 @@ contract RaderedShardNFT is ERC721URIStorage {
      */
     address creationContractAddress;
 
-    /**
-    * raderedNFTContractAddress 
-    * this is the address of the raderedNFT contract
-    * contracts/RaderedConsolidation.sol
-     */
-    address raderedCreationContractAddress;
-
     mapping(uint256 => RaderedUtils.Shard) private _shardDetails;
 
     constructor(
         address _marketPlaceContractAddress, 
-        address _creationContractAddress, 
-        address _raderedCreationContractAddress
+        address _creationContractAddress
     )ERC721('RaderedShard', 'RADSHARD') {
         marketPlaceContractAddress = _marketPlaceContractAddress;
         creationContractAddress = _creationContractAddress;
-        raderedCreationContractAddress = _raderedCreationContractAddress;
     }
 
-    function mintToken(string memory tokenURI, uint256 _hunkId, string memory _location, uint price) external returns(uint){
+    modifier onlyRaderedContract() {
+        require(msg.sender == marketPlaceContractAddress || msg.sender == creationContractAddress);
+        _;                             
+    } 
+    
+    function mintToken(string memory tokenURI, uint256 _hunkId, string memory _location, uint price) external onlyRaderedContract returns(uint){
 
-        RaderedCreation raderedCreationInstance = RaderedCreation(raderedCreationContractAddress);        
+        RaderedCreation raderedCreationInstance = RaderedCreation(creationContractAddress);        
         require(!raderedCreationInstance._isTokenMinted(_hunkId), "RaderedShardNFT: Token and its Shard is already minted");
         
         _tokenIds.increment();
@@ -180,7 +176,7 @@ contract RaderedShardNFT is ERC721URIStorage {
     }
 
     // set shard as unlocked
-    function setRaderedShardUnlocked(uint256 tokenId) public {
+    function setRaderedShardUnlocked(uint256 tokenId) public onlyRaderedContract {
         require(_exists(tokenId), "RaderedShardNFT: RaderedShardNFT set of nonexistent token");
         require(!_shardDetails[tokenId].isDiscovered, "RaderedShardNFT: RaderedShardNFT is already unlocked");
         _shardDetails[tokenId].isDiscovered = true;
