@@ -5,15 +5,15 @@ describe("Radered", function () {
 
   it("Should return the new greeting once it's changed", async function () {
 
-    const Float = await ethers.getContractFactory("libs/Float");
+    const Float = await ethers.getContractFactory("Float");
     const float = await Float.deploy();
     await float.deployed();
 
-    const Strings = await ethers.getContractFactory("libs/strings");
+    const Strings = await ethers.getContractFactory("strings");
     const strings = await Strings.deploy();
     await strings.deployed();
 
-    const RaderedUtils = await ethers.getContractFactory("RaderedUtils", { libraries: { Float: float.address, strings: strings.address } });
+    const RaderedUtils = await ethers.getContractFactory("RaderedUtils", { libraries: { Float: float.address } });
     const raderedUtils = await RaderedUtils.deploy();
     await raderedUtils.deployed();
     
@@ -21,10 +21,10 @@ describe("Radered", function () {
     const RaderedHunkNFT = await ethers.getContractFactory("RaderedHunkNFT");
 
     // Get the deployed contract RaderedShardNFT
-    const RaderedShardNFT = await ethers.getContractFactory("RaderedShardNFT");
+    const RaderedShardNFT = await ethers.getContractFactory("RaderedShardNFT", { libraries: { Float: float.address, RaderedUtils: raderedUtils.address } });
 
     // Get the deployed contract RaderedCreation
-    const RaderedCreation = await ethers.getContractFactory("RaderedCreation");
+    const RaderedCreation = await ethers.getContractFactory("RaderedCreation", { libraries: { RaderedUtils: raderedUtils.address } });
 
     // Get the deployed contract RaderedMarket
     const RaderedMarket = await ethers.getContractFactory("RaderedMarket");
@@ -38,7 +38,7 @@ describe("Radered", function () {
     await creation.deployed();
     const creationAddress = creation.address;
 
-    const hunk = await RaderedHunkNFT.deploy(marmarketAddressket, creationAddress);
+    const hunk = await RaderedHunkNFT.deploy(marketAddress, creationAddress);
     await hunk.deployed();
     const hunkAddress = hunk.address;
 
