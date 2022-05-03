@@ -339,8 +339,13 @@ library Float {
         // trim the decimal part to the specified 'decimal' decimal places
         bytes memory strBytes = bytes(strSlice.toString());
         bytes memory decimalResult = new bytes(decimal);
+
         for(uint i = 0; i < decimal; i++) {
-            decimalResult[i-0] = strBytes[i];
+            if (i >= strBytes.length) {
+                decimalResult[i] = '0';
+            }else{
+                decimalResult[i] = strBytes[i];
+            }
         }
 
         // add all parts including the decimal point "." to get the final string (without the sign)

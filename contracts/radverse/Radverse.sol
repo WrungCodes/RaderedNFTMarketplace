@@ -21,13 +21,15 @@ import "@openzeppelin/contracts/utils/Address.sol";
 
 import "../libs/strings.sol";
 import "../libs/Float.sol";
-
+import "hardhat/console.sol";
 /**
  * @title Interface for contracts conforming to ERC-20
  */
 interface ERC20Interface {
   function transferFrom(address from, address to, uint tokens) external returns (bool success);
-  function balanceOf(address _owner) external view returns (uint balance);
+  function balanceOf(address _owner) external view returns (uint256 balance);
+  function approve(address spender, uint amount) external returns (bool success);
+  function allowance(address spender, address owner) external returns (uint256 balance);
 }
 
 contract Radverse is ERC721URIStorage {
@@ -135,18 +137,6 @@ contract Radverse is ERC721URIStorage {
         return _tileArray[tileId];
     }
 
-    /**
-    * @dev get all tiles in the universe
-    * @return Tile[] the array of tiles
-    */
-    function _getAllTiles() external view returns(Tile[] memory){
-        Tile[] memory tiles = new Tile[](_tileIds.current());
-        for(uint256 i = 0; i < _tileIds.current(); i++){
-            tiles[i] = _tileArray[i + 1];
-        }
-        return tiles;
-    }
-
     // get the total number of tiles in the universe
     function _getTotalTiles() external view returns(uint256){
         return _tileIds.current();
@@ -165,8 +155,8 @@ contract Radverse is ERC721URIStorage {
                 count++;
             }
         }
-
-        Tile[] memory tiles = new Tile[](_tileIds.current());
+        
+        Tile[] memory tiles = new Tile[](count);
 
         for (uint i = 0; i < totalItemCount; i++) {
             if (ownerOf(i + 1) == msg.sender) {
@@ -183,59 +173,28 @@ contract Radverse is ERC721URIStorage {
         _;                             
     } 
 
-    // function setLandFeePerUnitArea(uint256 _newFee) public onlyOwner {
+    function setLandFeePerUnitArea(uint256 _newFee) public onlyOwner {
 
-    //     uint256 oldFee = landFeeInUnitArea;
-    //     landFeeInUnitArea = _newFee;
+        uint256 oldFee = landFeeInUnitArea;
+        landFeeInUnitArea = _newFee;
 
-    //     emit LandFeeChanged(oldFee, landFeeInUnitArea);
-    // }
-
-    // function setChangeURIFee(uint256 _newFee) public onlyOwner {
-
-    //     uint256 oldFee = changeURIfee;
-    //     changeURIfee = _newFee;
-
-    //     emit ChangeURIfeeChanged(oldFee, changeURIfee);
-    // }
-
-    /**
-    * @dev get the land fee per unit area
-    * @return Float.float the fee per unit area
-    */
-    function _calculateUnitArea(Rect memory rect) public pure returns(Float.float memory) {
-        return Float.multiply(
-            Float.sub(
-                (Float.add(rect.x1.multiply(rect.y2), rect.x2.multiply(rect.y1))), 
-                (Float.add(rect.y1.multiply(rect.x2), rect.y2.multiply(rect.x1)))
-            ),
-            Float.float({
-                _value: [uint256(1), uint256(0), uint256(5000000)], 
-                _string: '0.5000000', 
-                _uint: uint256(5000000),
-                _decimal: 7, 
-                _decimal_string: '5000000',
-                _is_negative: false
-            })
-        );
+        emit LandFeeChanged(oldFee, landFeeInUnitArea);
     }
 
-    // function _checkIfTileIsTakenCircle(
-    //     Float.float memory lat_a, Float.float memory long_b, Float.float memory raduis_c, 
-    //     Float.float memory lat_x, Float.float memory long_y, Float.float memory raduis_z
-    // ) internal pure returns(bool) 
-    // {
-    //     Float.float memory distSq = Float.add(
-    //         Float.multiply(Float.sub(lat_a, lat_x), Float.sub(lat_a, lat_x)), 
-    //         Float.multiply(Float.sub(long_b, long_y), Float.sub(long_b, long_y))
-    //     );
+    function setChangeURIFee(uint256 _newFee) public onlyOwner {
 
-    //     Float.float memory radSumSq = Float.multiply(Float.add(raduis_c, raduis_z), Float.add(raduis_c, raduis_z));
+        uint256 oldFee = changeURIfee;
+        changeURIfee = _newFee;
 
-    //     if(Float.isEqual(distSq, radSumSq)){ return true; }
-    //     else if(Float.isGreaterThan(distSq, radSumSq)) { return false; }
-    //     else { return true; }
-    // }
+        emit ChangeURIfeeChanged(oldFee, changeURIfee);
+    }
+
+    /**
+    * Calculating the area of a point of tile ignoring the curvature of the earth
+    */
+    function _calculateArea(Rect memory rect) public pure returns(Float.float memory) {
+        return Float.multiply(Float.abs(Float.sub(Float.abs(rect.x2), Float.abs(rect.x1))), Float.abs(Float.sub(Float.abs(rect.y2), Float.abs(rect.y1))));
+    }
 
     function _checkIfTileOverLap( Rect memory a, Rect memory b ) internal pure 
     {
@@ -251,7 +210,8 @@ contract Radverse is ERC721URIStorage {
 
     function _checkIfTileIsValid(Rect memory rect) internal pure
     {
-        require((rect.x1.isEqual(rect.x2) || rect.y1.isEqual(rect.y2)), "Universe: Tile is invalid because it is a line");
+        require(!rect.x1.isEqual(rect.x2), "Universe: Tile is invalid because it is a line");
+        require(!rect.y1.isEqual(rect.y2), "Universe: Tile is invalid because it is a line");
     }
 
     function mintToken(
@@ -272,14 +232,14 @@ contract Radverse is ERC721URIStorage {
         _checkIfTileIsValid(rect);
 
         // check if the location is already taken
-        for(uint256 i = 0; i < _tileIds.current(); i++){
+        for(uint256 i = uint256(0); i < _tileIds.current(); i++){
             Tile memory tile = _tileArray[i + 1];
             _checkIfTileOverLap(rect, tile.rect);
             _checkIfTileTouches(rect, tile.rect);
         }
-
+        
         // area of tile round up to the nearest integer
-        uint256 area = (_calculateUnitArea(rect).ceil())._value[1];
+        uint256 area = _calculateArea(rect).ceil()._value[1];
 
         // require area to be greater than 0
         require(area > 0, "Universe: Tile is invalid because the area is less than 0");
@@ -333,6 +293,7 @@ contract Radverse is ERC721URIStorage {
         require(msg.sender == ownerOf(_tileId), "Universe: Only the owner can set the token URI");
 
         require(_exists(_tileId), "Universe: RadUniverse Tile does not exist");
+
         require(bytes(_tokenURI).length > 0, "Universe: Token URI is invalid");
 
         // check if balance is enough
@@ -347,8 +308,13 @@ contract Radverse is ERC721URIStorage {
         _setTokenURI(_tileId, _tokenURI);
 
         Tile memory tile = _tileArray[_tileId];
-        tile.uri = _tokenURI;
-        tile.hasUri = true;
+
+        _tileArray[_tileId] = Tile({
+            id: tile.id,
+            rect: tile.rect,
+            uri: _tokenURI,
+            hasUri: true
+        });
 
         emit TileURIChanged(tile.id, tile.rect, _tokenURI, true, ownerOf(_tileId));
 

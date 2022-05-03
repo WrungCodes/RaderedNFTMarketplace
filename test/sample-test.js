@@ -68,130 +68,61 @@ describe("Radered", function () {
 
     console.log(`Radverse contract address ${Radverse.address}`);
     console.log(`Radverse Total Number of tiles ${await Radverse._getTotalTiles()}`);
-  })
 
-  it("Should return the new greeting once it's changed", async function () {
+    const totalTiles = await Radverse._getAllTilesForAddress();
+    console.log(totalTiles);
 
-    const Strings = await ethers.getContractFactory("strings");
-    const strings = await Strings.deploy();
-    await strings.deployed();
+    const lat1 = '35.2054800';
+    const long1 = '-97.0609900';
+    const lat2 = '36.2054545';
+    const long2 = '-98.0613590';
 
-    const Float = await ethers.getContractFactory("Float");
-    const float = await Float.deploy();
-    await float.deployed();
+    // approve for addr1 to spend 500000000000000 tokens
+    const area = calcArea(lat1, long1, lat2, long2);
+    console.log(`Area ${area}`);
 
-    const RaderedUtils = await ethers.getContractFactory("RaderedUtils", { libraries: { Float: float.address } });
-    const raderedUtils = await RaderedUtils.deploy();
-    await raderedUtils.deployed();
-    
-    // Get the deployed contract RaderedHunkNFT
-    const RaderedHunkNFT = await ethers.getContractFactory("RaderedHunkNFT");
+    await RadToken.connect(addr1).approve(Radverse.address, 500000000000000 * area);
 
-    // Get the deployed contract RaderedShardNFT
-    const RaderedShardNFT = await ethers.getContractFactory("RaderedShardNFT", { libraries: { Float: float.address, RaderedUtils: raderedUtils.address } });
-
-    // Get the deployed contract RaderedCreation
-    const RaderedCreation = await ethers.getContractFactory("RaderedCreation", { libraries: { RaderedUtils: raderedUtils.address } });
-
-    // Get the deployed contract RaderedMarket
-    const RaderedMarket = await ethers.getContractFactory("RaderedMarket");
-
-
-    const market = await RaderedMarket.deploy();
-    await market.deployed();
-    const marketAddress = market.address;
-
-    const creation = await RaderedCreation.deploy();
-    await creation.deployed();
-    const creationAddress = creation.address;
-
-    const hunk = await RaderedHunkNFT.deploy(marketAddress, creationAddress);
-    await hunk.deployed();
-    const hunkAddress = hunk.address;
-
-    const shard = await RaderedShardNFT.deploy(marketAddress, creationAddress);
-    await hunk.deployed();
-    const shardAddress = shard.address;
-
-    const [_, buyerAddress, locatorAddress] = await ethers.getSigners();
-
-    const hunkTokenId = await creation.connect(buyerAddress).mintToken(
-      hunkAddress, 
-      shardAddress, 
-      ['http://example.com/hunk.png', 'http://example.com/shard1.png', 'http://example.com/shard2.png', 'http://example.com/shard3.png'],
-      [ ethers.utils.parseEther("1"), ethers.utils.parseEther("2"), ethers.utils.parseEther("3")], 
-      // [ "-50.531052,-39.531052,-60.531052,-40.531052,", "6.442251,3.531052,6.442000,3.530500,", "41.403362,-3.832292,41.336416,-4.020151," ] //
-      [ 
-        [ ['1', '50', '531052'], ['1', '39', '531052'], ['1', '60', '531052'], ['1', '40', '531052'] ],
-        [ ['1', '6', '442251'], ['1', '3', '531052'], ['1', '6', '442000'], ['1', '3', '530500'] ],
-        [ ['1', '41', '403362'], ['1', '1', '832292'], ['1', '41', '336416'], ['1', '1', '020151'] ]
-      ] //
-
+    // mint tokens
+    const mint = await Radverse.connect(addr1).mintToken(
+      'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+      lat1,
+      long1,
+      lat2,
+      long2
     );
 
-    await hunkTokenId.wait();
+    await mint.wait();
 
-    // console.log(`hunkTokenId:`, hunkTokenId);
+    console.log(`mint:`, mint);
 
-    // console.log(await creation.connect(buyerAddress).getAllRadereds());
+    console.log(`Radverse Total Number of tiles ${await Radverse._getTotalTiles()}`);
+    const totalTiles1 = await Radverse.connect(addr1)._getAllTilesForAddress();
+    console.log(totalTiles1);
 
-    // console.log(await shard.connect(buyerAddress).getAllShards());
+    const addr1NewBalance = await RadToken.balanceOf(addr1.address);
+    console.log(`${addr1.address} has ${ethers.utils.formatEther(addr1NewBalance)} RAD`);
 
-    const locate1 = await creation.connect(locatorAddress).isLocationVerifcation(
-      shardAddress, 
-      1, 
-      "-60.000000",
-      "-40.000000",
-      { value: ethers.utils.parseEther("0.0004") }
-    )
+    await RadToken.connect(addr1).approve(Radverse.address, 100000000000000);
 
-    await locate1.wait();
+    const changeURI = await Radverse.connect(addr1).setNewTokenURI(
+      1,
+      'https://www.www.com/watch?v=dQw4w9WgXcQ'
+    );
 
-    const locate2 = await creation.connect(locatorAddress).isLocationVerifcation(
-      shardAddress, 
-      2, 
-      "6.442100",
-      "3.530600",
-      { value: ethers.utils.parseEther("0.0004") }
-    )
+    await changeURI.wait();
 
-    await locate2.wait();
+    console.log(`changeURI:`, changeURI);
 
-    const locate3 = await creation.connect(locatorAddress).isLocationVerifcation(
-      shardAddress, 
-      3,
-      "41.378560", // 41.378560994761045, -3.8984102827389635
-      "-3.898410",
-      { value: ethers.utils.parseEther("0.0004") }
-    )
+    const addr1NewBalance2 = await RadToken.balanceOf(addr1.address);
+    console.log(`${addr1.address} has ${ethers.utils.formatEther(addr1NewBalance2)} RAD`);
 
-    await locate3.wait();
+    const totalTiles2 = await Radverse.connect(addr1)._getAllTilesForAddress();
+    console.log(totalTiles2);
+  })
 
-    // console.log(`locate:`, locate);
-
-    console.log(await creation.connect(locatorAddress).getUserDiscoveredShards());
-
-    // console.log('isGreaterThan: ', await shard.isGreaterThan({_value: [1, 3, 8984102827389635]}, {_value:[1, 4, 020151617165021]}));
-    // console.log('isLesserThan: ', await shard.isLesserThan({_value: [1, 3, 8984102827389635]}, {_value:[1, 3, 832292144214467]}));
-
-    // console.log('isGreaterThan: ', await shard.isGreaterThan({_value: [0, 41, 378560]}, {_value:[0, 41, 336416]}));
-    // console.log('isLesserThan: ', await shard.isLesserThan({_value: [0, 41, 378560]}, {_value:[0, 41, 403362]}));
-
-
-    // console.log((await shard.connect(locatorAddress).getShardDetails(2)).location); 31.38252529279829, 2.1171138388337334  31.381830678299888, 2.1158120155397127
-
-
-    // const Greeter = await ethers.getContractFactory("Greeter");
-    // const greeter = await Greeter.deploy("Hello, world!");
-    // await greeter.deployed();
-
-    // expect(await greeter.greet()).to.equal("Hello, world!");
-
-    // const setGreetingTx = await greeter.setGreeting("Hola, mundo!");
-
-    // // wait until the transaction is mined
-    // await setGreetingTx.wait();
-
-    // expect(await greeter.greet()).to.equal("Hola, mundo!");
-  });
+  const calcArea = (x1, y1, x2, y2) => {
+    return Math.ceil(Math.abs(Math.abs(x2) -  Math.abs(x1)) * Math.abs(Math.abs(y2) -  Math.abs(y1)));
+  }
+  
 });
