@@ -19,28 +19,28 @@ a {
 @font-face {
   font-family: Epura;
   src: url('/fonts/epura/Epura-Bold-Italic.otf');
-  font-weight: 800;
+  font-weight: 700;
   font-style: italic;
 }
 
 @font-face {
   font-family: Epura;
   src: url('/fonts/epura/Epura-Bold.otf');
-  font-weight: 800;
+  font-weight: 700;
   font-style: normal;
 }
 
 @font-face {
   font-family: Epura;
   src: url('/fonts/epura/Epura-Book-Italic.otf');
-  /* font-weight: bolder; */
+  font-weight: 900;
   font-style: italic;
 }
 
 @font-face {
   font-family: Epura;
   src: url('/fonts/epura/Epura-Book.otf');
-  /* font-weight: bolder; */
+  font-weight: 900;
   font-style: normal;
 }
 
@@ -61,69 +61,69 @@ a {
 @font-face {
   font-family: Epura;
   src: url('/fonts/epura/Epura-ExtraBold-Italic.otf');
-  font-weight: 900;
+  font-weight: 800;
   font-style: italic;
 }
 
 @font-face {
   font-family: Epura;
   src: url('/fonts/epura/Epura-ExtraBold.otf');
-  font-weight: 900;
+  font-weight: 800;
   font-style: normal;
 }
 
 @font-face {
   font-family: Epura;
   src: url('/fonts/epura/Epura-Light-Italic.otf');
-  font-weight: normal;
+  font-weight: 300;
   font-style: italic;
 }
 
 @font-face {
   font-family: Epura;
   src: url('/fonts/epura/Epura-Light.otf');
-  font-weight: normal;
+  font-weight: 300;
   font-style: normal;
 }
 
 @font-face {
   font-family: Epura;
   src: url('/fonts/epura/Epura-Medium-Italic.otf');
-  font-weight: 600;
+  font-weight: 500;
   font-style: italic;
 }
 
 @font-face {
   font-family: Epura;
   src: url('/fonts/epura/Epura-Medium.otf');
-  font-weight: 600;
+  font-weight: 500;
   font-style: normal;
 }
 
 @font-face {
   font-family: Epura;
   src: url('/fonts/epura/Epura-Regular-Italic.otf');
-  font-weight: 500;
+  font-weight: 400;
   font-style: italic;
 }
 
 @font-face {
   font-family: Epura;
   src: url('/fonts/epura/Epura-Regular.otf');
-  font-weight: 500;
+  font-weight: 400;
   font-style: normal;
 }
 
 @font-face {
   font-family: Epura;
   src: url('/fonts/epura/Epura-Semi-Bold-Italic.otf');
-  font-weight: 700;
+  font-weight: 600;
   font-style: italic;
 }
 
 @font-face {
   font-family: Epura;
   src: url('/fonts/epura/Epura-SemiBold.otf');
-  font-weight: 700;
+  font-weight: 600;
   font-style: normal;
 }
