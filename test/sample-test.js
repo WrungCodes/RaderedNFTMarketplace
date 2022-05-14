@@ -119,10 +119,11 @@ describe("Radered", function () {
 
     const totalTiles2 = await Radverse.connect(addr1)._getAllTilesForAddress();
     console.log(totalTiles2);
+
+    // console.log(totalTiles2[0]);
   })
 
   const calcArea = (x1, y1, x2, y2) => {
     return Math.ceil(Math.abs(Math.abs(x2) -  Math.abs(x1)) * Math.abs(Math.abs(y2) -  Math.abs(y1)));
   }
-  
 });
